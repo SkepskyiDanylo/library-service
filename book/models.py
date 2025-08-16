@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -8,6 +10,7 @@ class Book(models.Model):
         HARD = "HARD", _("Hardcover")
         SOFT = "SOFT", _("Softcover")
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, help_text=_("Book name"))
     pub_date = models.DateTimeField(help_text=_("Publication date"))
     author = models.CharField(max_length=255, help_text=_("Author full name"))
