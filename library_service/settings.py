@@ -1,7 +1,18 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+from telegram.bot import TelegramBot
+
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", None)
+CHAT_ID = os.getenv("CHAT_ID", None)
+telegram_bot = TelegramBot(BOT_TOKEN, CHAT_ID)
 
 SECRET_KEY = "django-insecure-r@@dun#kin#hi=6$t$3x48g_jq*fpoe*bh4p+2d696btrb9czn"
 
