@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from rest_framework import permissions, mixins, status
 from rest_framework.decorators import action
@@ -54,7 +55,7 @@ class BorrowingViewSet(
         return BorrowingListSerializer
 
     def perform_create(self, serializer):
-        borrowing = serializer.save(user=self.request.user)
+        borrowing = serializer.save(user=self.request.user, borrow_date=now().date())
         telegram_bot.new_borrowing(borrowing)
 
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
@@ -71,7 +72,7 @@ class BorrowingViewSet(
         with transaction.atomic():
             book.inventory = book.inventory + 1
             book.save()
-            instance.actual_return_date = timezone.now().date()
+            instance.actual_return_date = now().date()
             instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -66,7 +66,7 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
             "book",
             "user",
         )
-        read_only_fields = ("id", "user")
+        read_only_fields = ("id", "user", "actual_return_date", "borrow_date")
 
     def validate_book(self, value):
         if value.inventory < 1:
