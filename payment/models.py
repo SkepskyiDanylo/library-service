@@ -15,7 +15,7 @@ class Payment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     borrowing = models.ForeignKey(
-        "library_service.Borrowing",
+        "borrowing.Borrowing",
         on_delete=models.PROTECT,
         related_name="payments",
     )
