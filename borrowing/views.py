@@ -1,4 +1,9 @@
-from rest_framework import viewsets, permissions, mixins
+from django.db import transaction
+from django.utils import timezone
+from django.utils.translation import gettext as _
+from rest_framework import permissions, mixins, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from borrowing.models import Borrowing
@@ -41,7 +46,7 @@ class BorrowingViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return BorrowingListSerializer
-        elif self.action == "retrieve":
+        elif self.action in ("retrieve", "return_book"):
             return BorrowingDetailSerializer
         elif self.action == "create":
             return CreateBorrowingSerializer
@@ -49,3 +54,22 @@ class BorrowingViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=["post"], url_name="return", url_path="return")
+    def return_book(self, request, pk=None):
+        instance = self.get_object()
+
+        if instance.actual_return_date:
+            return Response(
+                {"detail": _("The book is already returned.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        book = instance.book
+        with transaction.atomic():
+            book.inventory = book.inventory + 1
+            book.save()
+            instance.actual_return_date = timezone.now().date()
+            instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
