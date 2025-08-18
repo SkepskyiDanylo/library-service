@@ -18,3 +18,5 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("", include(router.urls)),
 ]
+
+app_name = "user"
