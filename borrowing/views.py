@@ -12,6 +12,7 @@ from borrowing.serializers import (
     BorrowingDetailSerializer,
     CreateBorrowingSerializer,
 )
+from library_service.settings import telegram_bot
 
 
 class BorrowingViewSet(
@@ -53,7 +54,8 @@ class BorrowingViewSet(
         return BorrowingListSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        borrowing = serializer.save(user=self.request.user)
+        telegram_bot.new_borrowing(borrowing)
 
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):
