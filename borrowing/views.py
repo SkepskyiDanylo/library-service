@@ -14,6 +14,7 @@ from borrowing.serializers import (
     CreateBorrowingSerializer,
 )
 from library_service.settings import telegram_bot
+from payment.stripe_sessions import create_checkout_session
 
 
 class BorrowingViewSet(
@@ -57,6 +58,7 @@ class BorrowingViewSet(
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user, borrow_date=now().date())
         telegram_bot.new_borrowing(borrowing)
+        create_checkout_session(borrowing)
 
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):
