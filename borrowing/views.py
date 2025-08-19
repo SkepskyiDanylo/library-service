@@ -41,8 +41,10 @@ class BorrowingViewSet(
         if user.is_staff and user_id is not None:
             queryset = queryset.filter(user_id=user_id)
 
-        if self.action in ["list", "retrieve"]:
+        if self.action == "list":
             queryset = queryset.select_related("user", "book")
+        elif self.action == "retrieve":
+            queryset = queryset.select_related("user", "book").prefetch_related("payments")
 
         return queryset
 
