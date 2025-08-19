@@ -44,7 +44,9 @@ class BorrowingViewSet(
         if self.action == "list":
             queryset = queryset.select_related("user", "book")
         elif self.action == "retrieve":
-            queryset = queryset.select_related("user", "book").prefetch_related("payments")
+            queryset = queryset.select_related("user", "book").prefetch_related(
+                "payments"
+            )
 
         return queryset
 
