@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.utils.timezone import now
 from django.utils.translation.trans_null import gettext_lazy as _
 from rest_framework import serializers
 
 from book.serializers import BookSerializer
 from borrowing.models import Borrowing
+from payment.models import Payment
+from payment.stripe_sessions import create_checkout_session
 
 
 class BorrowingListSerializer(serializers.ModelSerializer):
@@ -38,9 +42,17 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = ("id", "money_to_pay", "session_id", "session_url", "status", "type")
+
+
 class BorrowingDetailSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     book = BookSerializer(read_only=True)
+    payments = PaymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Borrowing
@@ -51,6 +63,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
+            "payments",
         )
 
 
@@ -76,16 +89,17 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, validated_data):
-        borrow_date = validated_data.get("borrow_date")
         expected_return_date = validated_data.get("expected_return_date")
-        if expected_return_date < borrow_date:
+        if expected_return_date < now().date():
             raise serializers.ValidationError(
                 _("Expected return date must be after borrowing date.")
             )
         return validated_data
 
     def create(self, validated_data):
-        book = validated_data.get("book")
-        book.inventory = book.inventory - 1
-        book.save()
-        return Borrowing.objects.create(**validated_data)
+        with transaction.atomic():
+            book = validated_data.get("book")
+            book.inventory = book.inventory - 1
+            book.save()
+            borrowing = Borrowing.objects.create(**validated_data)
+        return borrowing

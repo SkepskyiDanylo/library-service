@@ -14,6 +14,7 @@ from borrowing.serializers import (
     CreateBorrowingSerializer,
 )
 from library_service.settings import telegram_bot
+from payment.stripe_sessions import create_checkout_session
 
 
 class BorrowingViewSet(
@@ -40,8 +41,10 @@ class BorrowingViewSet(
         if user.is_staff and user_id is not None:
             queryset = queryset.filter(user_id=user_id)
 
-        if self.action in ["list", "retrieve"]:
+        if self.action == "list":
             queryset = queryset.select_related("user", "book")
+        elif self.action == "retrieve":
+            queryset = queryset.select_related("user", "book").prefetch_related("payments")
 
         return queryset
 
@@ -57,6 +60,7 @@ class BorrowingViewSet(
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user, borrow_date=now().date())
         telegram_bot.new_borrowing(borrowing)
+        create_checkout_session(borrowing)
 
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):

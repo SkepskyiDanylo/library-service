@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 BOT_TOKEN = os.getenv("BOT_TOKEN", None)
 CHAT_ID = os.getenv("CHAT_ID", None)
 telegram_bot = TelegramBot(BOT_TOKEN, CHAT_ID)
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", None)
 
 SECRET_KEY = "django-insecure-r@@dun#kin#hi=6$t$3x48g_jq*fpoe*bh4p+2d696btrb9czn"
 

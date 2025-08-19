@@ -5,7 +5,9 @@ from payment.models import Payment
 
 
 class PaymentListSerializer(serializers.ModelSerializer):
-    user = serializers.CharField(source="borrowing.user.full_name", read_only=True)
+    user_fullname = serializers.CharField(
+        source="borrowing.user.full_name", read_only=True
+    )
     user_id = serializers.CharField(source="borrowing.user.id", read_only=True)
 
     class Meta:
@@ -16,7 +18,7 @@ class PaymentListSerializer(serializers.ModelSerializer):
             "type",
             "status",
             "borrowing",
-            "user",
+            "user_fullname",
             "user_id",
             "session_url",
             "session_id",
