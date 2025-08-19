@@ -62,7 +62,7 @@ class BorrowingViewSet(
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user, borrow_date=now().date())
         telegram_bot.new_borrowing(borrowing)
-        create_checkout_session(borrowing)
+        create_checkout_session(self.request, borrowing)
 
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):

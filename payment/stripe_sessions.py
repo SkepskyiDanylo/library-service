@@ -1,4 +1,5 @@
 import stripe
+from rest_framework.reverse import reverse
 
 from library_service import settings
 from payment.models import Payment
@@ -12,7 +13,13 @@ def calculate_payment_price(borrowing):
     return price
 
 
-def create_checkout_session(borrowing) -> str:
+def create_checkout_session(request, borrowing) -> str:
+    success_url = (
+        request.build_absolute_uri(reverse("payment:success"))
+        + "?session_id={CHECKOUT_SESSION_ID}"
+    )
+    cancel_url = request.build_absolute_uri(reverse("payment:cancel"))
+
     price = calculate_payment_price(borrowing)
     book = borrowing.book
     session = stripe.checkout.Session.create(
@@ -29,8 +36,8 @@ def create_checkout_session(borrowing) -> str:
             }
         ],
         mode="payment",
-        success_url="http://localhost:8000/success",
-        cancel_url="http://localhost:8000/cancel",
+        success_url=success_url,
+        cancel_url=cancel_url,
     )
     return Payment.objects.create(
         borrowing=borrowing,
@@ -38,3 +45,10 @@ def create_checkout_session(borrowing) -> str:
         session_id=session.id,
         money_to_pay=price,
     )
+
+
+def check_session_paid(session_id):
+    session = stripe.checkout.Session.retrieve(session_id)
+    if session.payment_status == "paid":
+        return True
+    return False

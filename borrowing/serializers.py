@@ -7,7 +7,6 @@ from rest_framework import serializers
 from book.serializers import BookSerializer
 from borrowing.models import Borrowing
 from payment.models import Payment
-from payment.stripe_sessions import create_checkout_session
 
 
 class BorrowingListSerializer(serializers.ModelSerializer):
