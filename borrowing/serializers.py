@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 from django.utils.translation.trans_null import gettext_lazy as _
 from rest_framework import serializers
 
@@ -78,7 +79,7 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         borrow_date = validated_data.get("borrow_date")
         expected_return_date = validated_data.get("expected_return_date")
-        if expected_return_date < borrow_date:
+        if expected_return_date < now().date():
             raise serializers.ValidationError(
                 _("Expected return date must be after borrowing date.")
             )
