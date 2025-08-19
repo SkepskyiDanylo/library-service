@@ -24,6 +24,10 @@ class Payment(models.Model):
         max_length=255,
     )
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    type = models.CharField(max_length=10, choices=Type.choices, default=Type.PAYMENT)
 
     class Meta:
         verbose_name = _("Payment")
