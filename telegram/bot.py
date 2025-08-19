@@ -51,7 +51,7 @@ class TelegramBot:
         self._send_message(message)
 
     def no_expired_borrowings(self):
-        message = "No borrowings overdue today!"
+        message = "No borrowings overdue today!✅"
         self._send_message(message)
 
     async def listen_and_reply(self):
