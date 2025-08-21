@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+import borrowing
 from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingListSerializer,
@@ -14,7 +15,7 @@ from borrowing.serializers import (
     CreateBorrowingSerializer,
 )
 from library_service.settings import telegram_bot
-from payment.stripe_sessions import create_checkout_session
+from payment.stripe_sessions import create_checkout_session, create_fine_session
 
 
 class BorrowingViewSet(
@@ -80,5 +81,9 @@ class BorrowingViewSet(
             book.save()
             instance.actual_return_date = now().date()
             instance.save()
+            if now().date() > instance.expected_return_date:
+                overdue = (instance.expected_return_date - now().date()).days
+                create_fine_session(request, instance, book, overdue)
+                instance.refresh_from_db()
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
