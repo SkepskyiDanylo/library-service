@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 from library_service import settings
 from payment.models import Payment
 
+FINE_MULTIPLIER = 2
 stripe.api_key = settings.STRIPE_API_KEY
 
 
@@ -13,12 +14,17 @@ def calculate_payment_price(borrowing):
     return price
 
 
-def create_checkout_session(request, borrowing) -> str:
+def get_return_urls(request):
     success_url = (
         request.build_absolute_uri(reverse("payment:success"))
         + "?session_id={CHECKOUT_SESSION_ID}"
     )
     cancel_url = request.build_absolute_uri(reverse("payment:cancel"))
+    return success_url, cancel_url
+
+
+def create_checkout_session(request, borrowing) -> str:
+    success_url, cancel_url = get_return_urls(request)
 
     price = calculate_payment_price(borrowing)
     book = borrowing.book
@@ -44,6 +50,35 @@ def create_checkout_session(request, borrowing) -> str:
         session_url=session.url,
         session_id=session.id,
         money_to_pay=price,
+    )
+
+
+def create_fine_session(request, borrowing, book, overdue) -> str:
+    success_url, cancel_url = get_return_urls(request)
+    price = book.daily_fee * FINE_MULTIPLIER * abs(overdue)
+    session = stripe.checkout.Session.create(
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": f"Overdue fine for book {borrowing.book.name}",
+                    },
+                    "unit_amount": int(price * 100),
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=success_url,
+        cancel_url=cancel_url,
+    )
+    return Payment.objects.create(
+        borrowing=borrowing,
+        session_url=session.url,
+        session_id=session.id,
+        money_to_pay=price,
+        type="FINE",
     )
 
 
