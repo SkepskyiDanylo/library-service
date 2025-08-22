@@ -14,7 +14,7 @@ class TelegramBot:
         self.uri = f"https://api.telegram.org/bot{token}/"
 
     def _send_message(self, text: str) -> None:
-        payload = {"chat_id": self.chat_id, "text": text}
+        payload = {"chat_id": self.chat_id, "text": text, "parse_mode": "HTML"}
         with httpx.Client() as client:
             res = client.post(self.uri + "sendMessage", data=payload)
         if res.status_code != 200:
@@ -51,7 +51,21 @@ class TelegramBot:
         self._send_message(message)
 
     def no_expired_borrowings(self):
-        message = "No borrowings overdue today!✅"
+        message = "No borrowings overdue today!✔️"
+        self._send_message(message)
+
+    def success_payment(self, payment):
+        price = payment.money_to_pay
+        payment_type = payment.get_type_display()
+        book = payment.borrowing.book.name
+        user = payment.borrowing.user
+        message = (
+            "✔️ New Success Payment!\n"
+            f"User: {user.full_name}, {user.email}\n"
+            f"Book: {book}\n"
+            f"Price: {price}$\n"
+            f"Type: {payment_type}\n"
+        )
         self._send_message(message)
 
     async def listen_and_reply(self):
