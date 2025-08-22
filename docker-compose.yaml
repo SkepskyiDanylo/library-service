@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     volumes:
-      - my_db:$PGDATA
+      - my_db:/var/lib/posgresql/data
 
   redis:
     image: redis:7-alpine
