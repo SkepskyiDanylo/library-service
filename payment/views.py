@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.translation import gettext as _
+
 from payment.models import Payment
 from payment.serializers import PaymentDetailSerializer, PaymentListSerializer
 from payment.stripe_sessions import check_session_paid, renew_session
+from payment.tasks import send_payment
 
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -48,8 +50,10 @@ class SuccessPaymentView(APIView):
         session_status = check_session_paid(session)
         if session_status is True:
             payment = get_object_or_404(Payment, session_id=session)
-            payment.status = "PAID"
-            payment.save()
+            if payment.status != "PAID":
+                payment.status = "PAID"
+                payment.save()
+                send_payment.delay(payment.pk)
             return Response(
                 {"detail": _("Payment was successful.")}, status=status.HTTP_200_OK
             )

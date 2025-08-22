@@ -55,9 +55,10 @@ class User(AbstractUser):
 
     @property
     def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}".strip()
+        fullname = f"{self.first_name} {self.last_name}".strip()
+        if not fullname:
+            return "Anonymous name"
+        return fullname
 
     def __str__(self):
-        if self.full_name:
-            return f"{self.full_name} <{self.email}>"
-        return self.email
+        return f"{self.full_name} <{self.email}>"
