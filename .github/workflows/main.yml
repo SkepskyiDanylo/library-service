@@ -1,0 +1,46 @@
+name: Django Docker CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      CHAT_ID: ${{ secrets.CHAT_ID }}
+      CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-docker-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
+
+    - name: Build and start containers
+      run: |
+        docker-compose up -d --build
+
+    - name: Run Django tests
+      run: |
+        docker-compose exec -T web python manage.py test tests
+
+    - name: Stop and remove containers
+      if: always()
+      run: |
+        docker-compose down -v
