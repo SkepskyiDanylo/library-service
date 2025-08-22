@@ -17,6 +17,9 @@ jobs:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       CHAT_ID: ${{ secrets.CHAT_ID }}
       CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+      PGDATA: ${{ secrets.PGDATA }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
 
     steps:
     - uses: actions/checkout@v4
