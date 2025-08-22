@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -15,6 +16,7 @@ from borrowing.serializers import (
     CreateBorrowingSerializer,
 )
 from library_service.settings import telegram_bot
+from payment.models import Payment
 from payment.stripe_sessions import create_checkout_session, create_fine_session
 
 
@@ -50,6 +52,22 @@ class BorrowingViewSet(
             )
 
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        user = self.request.user
+        payments = Payment.objects.filter(
+            Q(borrowing__user=user) & (Q(status="PENDING") | Q(status="EXPIRED"))
+        )
+        if payments.exists():
+            return Response(
+                {
+                    "detail": _(
+                        "You can not borrow any book while you have pending payments."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().create(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == "list":
