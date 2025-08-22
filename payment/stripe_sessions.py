@@ -87,3 +87,37 @@ def check_session_paid(session_id):
     if session.payment_status == "paid":
         return True
     return False
+
+
+def get_sessions_for_payment(payment):
+    session_id = payment.session_id
+    sessions = stripe.checkout.Session.retrieve(session_id)
+    return sessions
+
+
+def renew_session(request, payment):
+    price = payment.money_to_pay
+    borrowing = payment.borrowing
+    success_url, cancel_url = get_return_urls(request)
+    session = stripe.checkout.Session.create(
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": f"Borrowing for book {borrowing.book.name}",
+                    },
+                    "unit_amount": int(price * 100),
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=success_url,
+        cancel_url=cancel_url,
+    )
+    payment.session_url = session.url
+    payment.session_id = session.id
+    payment.status = "PENDING"
+    payment.save()
+    return payment
