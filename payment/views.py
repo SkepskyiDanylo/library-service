@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 from payment.models import Payment
 from payment.serializers import PaymentDetailSerializer, PaymentListSerializer
-from payment.stripe_sessions import check_session_paid
+from payment.stripe_sessions import check_session_paid, renew_session
 
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -22,9 +23,21 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.action == "retrieve":
+        if self.action in ("retrieve", "renew"):
             return PaymentDetailSerializer
         return PaymentListSerializer
+
+    @action(detail=True, methods=["post"], url_path="renew", url_name="renew")
+    def renew(self, request, pk=None):
+        instance = self.get_object()
+        if instance.status != "EXPIRED":
+            return Response(
+                {"detail": _("Payment is not expired")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        renew_session(request, instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SuccessPaymentView(APIView):
