@@ -41,7 +41,7 @@ services:
     depends_on:
       - redis
       - db
-      - social_media
+      - web
     restart: on-failure
 
   celery-beat:
@@ -54,7 +54,7 @@ services:
     depends_on:
       - redis
       - db
-      - social_media
+      - web
     restart: on-failure
 
   flower:
