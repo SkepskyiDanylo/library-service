@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.db.models import Q
-from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from rest_framework import permissions, mixins, status
@@ -8,7 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-import borrowing
 from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingListSerializer,
