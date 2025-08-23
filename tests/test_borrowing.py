@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils.timezone import now
@@ -20,7 +21,8 @@ class BorrowingEndpointTest(APITestCase):
         )
         self.url = reverse("borrowing:borrowing-list")
 
-    def test_successful_borrowing(self):
+    @patch("payment.stripe_sessions.create_checkout_session")
+    def test_successful_borrowing(self, mock_create_checkout_session):
         payload = {
             "book": self.book.id,
             "expected_return_date": (now().date() + timedelta(days=5)).isoformat(),
@@ -88,7 +90,8 @@ class BorrowingReturnBookTest(APITestCase):
             "borrowing:borrowing-return", kwargs={"pk": self.borrowing.id}
         )
 
-    def test_successful_return(self):
+    @patch("payment.stripe_sessions.create_fine_session")
+    def test_successful_return(self, mock_create_fine_session):
         response = self.client.post(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

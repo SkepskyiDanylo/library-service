@@ -23,7 +23,9 @@ def get_return_urls(request):
     return success_url, cancel_url
 
 
-def create_checkout_session(request, borrowing) -> str:
+def create_checkout_session(request, borrowing):
+    if not settings.STRIPE_API_KEY:
+        return
     success_url, cancel_url = get_return_urls(request)
 
     price = calculate_payment_price(borrowing)
@@ -53,7 +55,9 @@ def create_checkout_session(request, borrowing) -> str:
     )
 
 
-def create_fine_session(request, borrowing, book, overdue) -> str:
+def create_fine_session(request, borrowing, book, overdue):
+    if not settings.STRIPE_API_KEY:
+        return
     success_url, cancel_url = get_return_urls(request)
     price = book.daily_fee * FINE_MULTIPLIER * abs(overdue)
     session = stripe.checkout.Session.create(
@@ -83,6 +87,8 @@ def create_fine_session(request, borrowing, book, overdue) -> str:
 
 
 def check_session_paid(session_id):
+    if not settings.STRIPE_API_KEY:
+        return
     session = stripe.checkout.Session.retrieve(session_id)
     if session.payment_status == "paid":
         return True
@@ -90,12 +96,16 @@ def check_session_paid(session_id):
 
 
 def get_sessions_for_payment(payment):
+    if not settings.STRIPE_API_KEY:
+        return
     session_id = payment.session_id
     sessions = stripe.checkout.Session.retrieve(session_id)
     return sessions
 
 
 def renew_session(request, payment):
+    if not settings.STRIPE_API_KEY:
+        return
     price = payment.money_to_pay
     borrowing = payment.borrowing
     success_url, cancel_url = get_return_urls(request)
