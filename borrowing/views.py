@@ -25,6 +25,7 @@ class BorrowingViewSet(
     GenericViewSet,
 ):
     permission_classes = (permissions.IsAuthenticated,)
+    queryset = Borrowing.objects.none()
 
     def get_queryset(self):
         user = self.request.user

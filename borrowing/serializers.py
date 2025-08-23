@@ -29,7 +29,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class BorrowingUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
@@ -49,7 +49,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = BorrowingUserSerializer(read_only=True)
     book = BookSerializer(read_only=True)
     payments = PaymentSerializer(many=True, read_only=True)
 

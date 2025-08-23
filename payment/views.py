@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -7,13 +8,18 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 
 from payment.models import Payment
-from payment.serializers import PaymentDetailSerializer, PaymentListSerializer
+from payment.serializers import (
+    PaymentDetailSerializer,
+    PaymentListSerializer,
+    ResponseSerializer,
+)
 from payment.stripe_sessions import check_session_paid, renew_session
 from payment.tasks import send_payment
 
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
+    queryset = Payment.objects.none()
 
     def get_queryset(self):
         user = self.request.user
@@ -45,6 +51,10 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
 class SuccessPaymentView(APIView):
     permission_classes = (AllowAny,)
 
+    @extend_schema(
+        request=None,
+        responses=ResponseSerializer,
+    )
     def get(self, request):
         session = request.GET.get("session_id")
         session_status = check_session_paid(session)
@@ -63,6 +73,10 @@ class SuccessPaymentView(APIView):
 class CancelPaymentView(APIView):
     permission_classes = (AllowAny,)
 
+    @extend_schema(
+        request=None,
+        responses=ResponseSerializer,
+    )
     def get(self, request):
         return Response(
             {"detail": _("Payment was unsuccessful. You can pay later.")},
