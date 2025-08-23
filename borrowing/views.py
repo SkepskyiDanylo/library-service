@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -18,6 +19,7 @@ from payment.models import Payment
 from payment.stripe_sessions import create_checkout_session, create_fine_session
 
 
+@extend_schema(tags=["Borrowing"])
 class BorrowingViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,

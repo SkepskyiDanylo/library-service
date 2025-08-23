@@ -17,6 +17,7 @@ from payment.stripe_sessions import check_session_paid, renew_session
 from payment.tasks import send_payment
 
 
+@extend_schema(tags=["Payment"])
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Payment.objects.none()
@@ -48,6 +49,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["Payment"])
 class SuccessPaymentView(APIView):
     permission_classes = (AllowAny,)
 
@@ -70,6 +72,7 @@ class SuccessPaymentView(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema(tags=["Payment"])
 class CancelPaymentView(APIView):
     permission_classes = (AllowAny,)
 
