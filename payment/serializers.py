@@ -39,3 +39,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "session_url",
             "session_id",
         )
+
+
+class ResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField()
