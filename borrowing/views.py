@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,9 +16,11 @@ from borrowing.serializers import (
 )
 from library_service.settings import telegram_bot
 from payment.models import Payment
+from payment.serializers import ResponseSerializer
 from payment.stripe_sessions import create_checkout_session, create_fine_session
 
 
+@extend_schema(tags=["Borrowing"])
 class BorrowingViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -25,6 +28,7 @@ class BorrowingViewSet(
     GenericViewSet,
 ):
     permission_classes = (permissions.IsAuthenticated,)
+    queryset = Borrowing.objects.none()
 
     def get_queryset(self):
         user = self.request.user
@@ -81,6 +85,10 @@ class BorrowingViewSet(
         telegram_bot.new_borrowing(borrowing)
         create_checkout_session(self.request, borrowing)
 
+    @extend_schema(
+        request=None,
+        responses={200: CreateBorrowingSerializer, 400: ResponseSerializer},
+    )
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):
         instance = self.get_object()
