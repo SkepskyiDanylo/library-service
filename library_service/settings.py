@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "django_celery_results",
     "django_celery_beat",
+    "drf_spectacular",
     "library_service",
     "payment",
     "borrowing",
@@ -124,6 +125,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.ScopedRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -142,3 +144,20 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = "django-db"
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Swagger",
+    "DESCRIPTION": "AIRPORT internal api",
+    "VERSION": "1.0.0",
+    "SECURITY_SCHEMES": {
+        "BasicAuth": {"type": "http", "scheme": "basic"},
+        "BearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+    },
+    "DEFAULT_SECURITY": [{"BasicAuth": []}, {"BearerAuth": []}],
+    "filter": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True,
+}
