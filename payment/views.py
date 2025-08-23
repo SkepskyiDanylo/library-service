@@ -36,6 +36,10 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             return PaymentDetailSerializer
         return PaymentListSerializer
 
+    @extend_schema(
+        request=None,
+        responses={200: PaymentDetailSerializer, 400: ResponseSerializer},
+    )
     @action(detail=True, methods=["post"], url_path="renew", url_name="renew")
     def renew(self, request, pk=None):
         instance = self.get_object()

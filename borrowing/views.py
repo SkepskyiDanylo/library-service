@@ -16,6 +16,7 @@ from borrowing.serializers import (
 )
 from library_service.settings import telegram_bot
 from payment.models import Payment
+from payment.serializers import ResponseSerializer
 from payment.stripe_sessions import create_checkout_session, create_fine_session
 
 
@@ -84,6 +85,10 @@ class BorrowingViewSet(
         telegram_bot.new_borrowing(borrowing)
         create_checkout_session(self.request, borrowing)
 
+    @extend_schema(
+        request=None,
+        responses={200: CreateBorrowingSerializer, 400: ResponseSerializer},
+    )
     @action(detail=True, methods=["post"], url_name="return", url_path="return")
     def return_book(self, request, pk=None):
         instance = self.get_object()
